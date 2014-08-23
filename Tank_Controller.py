@@ -2,7 +2,6 @@ from Adafruit_PWM_Servo_Driver import PWM
 import time
 import RPi.GPIO as io
 
-
 class TankController:
   
   right_en = 0
@@ -21,44 +20,105 @@ class TankController:
     io.setmode(io.BOARD)
     pwm.setPWMFreq(60)
     
-  def left_clockwise():
-    pwm.setPWM(left_a, 0, 0)
-    pwm.setPWM(left_b, 0, pwmMax)
+  def left_clockwise(self):
+    self.pwm.setPWM(self.left_a, 0, self.pwmMax)
+    self.pwm.setPWM(self.left_b, 0, 0)    
     
-  def left_counter_clockwise():
-    pwm.setPWM(left_a, 0, pwmMax)
-    pwm.setPWM(left_b, 0, 0)    
+  def left_counter_clockwise(self):
+    self.pwm.setPWM(self.left_a, 0, 0)
+    self.pwm.setPWM(self.left_b, 0, self.pwmMax)
     
-  def right_clockwise():
-    pwm.setPWM(right_a, 0, 0)
-    pwm.setPWM(right_b, 0, pwmMax)
     
-  def right_counter_clockwise():
-    pwm.setPWM(right_a, 0, pwmMax)
-    pwm.setPWM(right_b, 0, 0)
+  def right_clockwise(self):
+    self.pwm.setPWM(self.right_a, 0, self.pwmMax)
+    self.pwm.setPWM(self.right_b, 0, 0)
     
-  def drive(left_speed, right_speed):
+  def right_counter_clockwise(self):
+    self.pwm.setPWM(self.right_a, 0, 0)
+    self.pwm.setPWM(self.right_b, 0, self.pwmMax)
     
+  def drive(self, left_speed, right_speed):
+    print 'left speed %s' %left_speed
+    print 'right speed %s' % right_speed
+      
     if -1 <= left_speed <= 1 and -1 <= right_speed <= 1:
       if left_speed > 0:
-        left_clockwise()
+        self.left_clockwise()
       else:
-        left_counter_clockwise()
+        self.left_counter_clockwise()
         
       if right_speed > 0:
-        right_clockwise()
+        self.right_clockwise()
       else:
-        right_counter_clockwise()
+        self.right_counter_clockwise()
         
+      if left_speed != 0 :
+        left_speed = int(self.pwmMin + (self.pwmDiff * abs(left_speed)))
+        
+      if right_speed !=0 :
+        right_speed = int(self.pwmMin + (self.pwmDiff * abs(right_speed)))
       
-      left_speed = pwmDiff * abs(left_speed)
-      right_speed = pwmDiff * abs(right_speed)
+      if left_speed < self.pwmMin:
+        left_speed = 0
+        
+      if right_speed < self.pwmMin:
+        right_speed = 0
       
-      pwm.setPWM(left_en, 0, left_speed)
-      pwm.setPWM(right_en, 0, right_speed)
+      print 'left speed %s' %left_speed
+      print 'right speed %s' % right_speed
+      
+      self.pwm.setPWM(self.left_en, 0, left_speed)
+      self.pwm.setPWM(self.right_en, 0, right_speed)
     
     else:
       #error
       print "Speed too big"
+      
+  def got_message(self, message):
+    commands = { 
+      'forward': self.forward, 
+      'stop': self.stop,
+      'backwards': self.backwards,
+      'left-forward': self.left_forward,
+      'right-forward': self.right_forward,
+      'rotate-left': self.rotate_left,
+      'rotate-right': self.rotate_right,
+      'left-backwards': self.left_backwards,
+      'right-backwards': self.right_backwards,
+    }
+    msg = message.split(',')
+    command = msg[0]
+    speed = float(msg[1])
+    print command
+    print 'Got command %s' % command
+    print 'Speed %s' % speed
     
+    commands[command](speed)
     
+  def forward(self, speed):
+    self.drive(speed/100, speed/100)
+    
+  def stop(self, speed):
+    self.drive(0,0)
+    
+  def backwards(self, speed):
+    self.drive(speed/-100, speed/-100)
+    
+  def left_forward(self, speed):
+    self.drive(0, speed/100)
+    
+  def right_forward(self, speed):
+    self.drive(speed/100, 0)
+    
+  def rotate_left(self, speed):
+    self.drive(speed/-100, speed/100)
+    
+  def rotate_right(self, speed):
+    self.drive(speed/100, speed/-100)
+    
+  def left_backwards(self, speed):
+    self.drive(0, speed/-100)
+    
+  def right_backwards(self, speed):
+    self.drive(speed/-100, 0)
+   
