@@ -1,6 +1,7 @@
 from Adafruit_PWM_Servo_Driver import PWM
 import time
 import RPi.GPIO as io
+import time
 
 class TankController:
   
@@ -10,6 +11,9 @@ class TankController:
   left_en  = 4
   left_a   = 5
   left_b   = 6
+  turt_en  = 8
+  turt_a   = 9
+  turt_b   = 10
   
   pwm      = PWM(0x40, debug=False)
   pwmMax   = 4095
@@ -85,6 +89,8 @@ class TankController:
       'rotate-right': self.rotate_right,
       'left-backwards': self.left_backwards,
       'right-backwards': self.right_backwards,
+      'turret-left': self.turret_left,
+      'turret-right': self.turret_right
     }
     msg = message.split(',')
     command = msg[0]
@@ -121,4 +127,23 @@ class TankController:
     
   def right_backwards(self, speed):
     self.drive(speed/-100, 0)
+    
+  def turret_left(self, speed):
+    self.pwm.setPWM(self.turt_a, 0, self.pwmMax)
+    self.pwm.setPWM(self.turt_b, 0, 0)
+    self.pwm.setPWM(self.turt_en, 0, (self.pwmMin + (self.pwmDiff/2)) )
+    
+    time.sleep(0.5)
+    self.pwm.setPWM(self.turt_en, 0, 0)
+    
+    
+  def turret_right(self, speed):
+    self.pwm.setPWM(self.turt_a, 0, 0)
+    self.pwm.setPWM(self.turt_b, 0, self.pwmMax)   
+    self.pwm.setPWM(self.turt_en, 0, (self.pwmMin + (self.pwmDiff/2)) )   
+    
+    time.sleep(0.5)
+    self.pwm.setPWM(self.turt_en, 0, 0)
+    
+    
    
