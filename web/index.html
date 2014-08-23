@@ -67,7 +67,7 @@
           $('#log').scrollTop($('#log')[0].scrollHeight);
         }
 
-        ws = new WebSocket("ws://document.domain:8888/ws");
+        ws = new WebSocket("ws://" + document.domain + ":8888/ws");
         ws.onmessage = function(evt) {
           logger(evt.data);
         };
