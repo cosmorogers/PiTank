@@ -6,6 +6,9 @@ import Tank_Controller
  
  
 class WSHandler(tornado.websocket.WebSocketHandler):
+    def check_origin(self, origin):
+      return True
+
     def open(self):
       print 'new connection'
       self.write_message("Hello World")
